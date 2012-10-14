@@ -72,6 +72,11 @@ Public Class MembersLoginLogoutClass
     Public Function GetAllUsers() As List(Of Users)
         Dim retlist As New List(Of Users)
         For Each a In ConnectionsList
+            If _removelist.Count = 0 Then
+                retlist.Add(a)
+                Continue For
+            End If
+
             Dim g = From b In _removelist
                     Where b.ConnectionId = a.ConnectionId And b.Name = a.Name
                     Select b

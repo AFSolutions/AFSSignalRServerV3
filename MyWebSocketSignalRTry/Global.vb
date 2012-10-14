@@ -77,7 +77,7 @@ Public Class wsHub
         End Try
     End Sub
 
-    Public Sub Disconnecting(ByVal name As String, ByVal connid As String)
+    Public Sub LogOut(ByVal name As String, ByVal connid As String)
         Try
 
             Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
