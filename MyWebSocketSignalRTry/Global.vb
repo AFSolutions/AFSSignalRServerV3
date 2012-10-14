@@ -1,7 +1,7 @@
 ﻿Imports SignalR.Hubs
 Imports AFSSignalRServer.Global_asax
 Imports System.Runtime.Serialization
-REM ready version v2.7
+REM ready version v2.8
 <HubName("wsHub")>
 Public Class wsHub
     Inherits Hub

@@ -53,13 +53,15 @@ Public Class MembersLoginLogoutClass
     End Function
 
     Public Function removeUser(ByVal nuser As Users) As Boolean
-        ConnectionsList.TryTake(nuser)
+        Dim tuser As Users = nuser
 
-        If ConnectionsList.Contains(nuser) Then
-            Return False
-        Else
+        Dim taken = ConnectionsList.TryTake(tuser)
+
+        If taken Then
             RaiseEvent MembersListChanged()
             Return True
+        Else
+            Return False
         End If
     End Function
 
