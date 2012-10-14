@@ -8,15 +8,25 @@ Public Class MembersLoginLogoutClass
     Public Shared Event MembersListChanged As MemebersListChangedEventHandler
 
 
-    Private Shared _connectionsList As New Concurrent.ConcurrentBag(Of Users)
-    Private _removelist As New Concurrent.ConcurrentBag(Of Users)
+    'Private Shared _connectionsList As New Concurrent.ConcurrentBag(Of Users)
+    'Private _removelist As New Concurrent.ConcurrentBag(Of Users)
 
+    Private Shared _connectionsList As New List(Of Users)
 
-    Public Shared Property ConnectionsList As Concurrent.ConcurrentBag(Of Users)
+    'Public Shared Property ConnectionsList As Concurrent.ConcurrentBag(Of Users)
+    '    Get
+    '        Return _connectionsList
+    '    End Get
+    '    Set(value As Concurrent.ConcurrentBag(Of Users))
+    '        _connectionsList = value
+    '    End Set
+    'End Property
+
+    Public Shared Property ConnectionsList As List(Of Users)
         Get
             Return _connectionsList
         End Get
-        Set(value As Concurrent.ConcurrentBag(Of Users))
+        Set(value As List(Of Users))
             _connectionsList = value
         End Set
     End Property
@@ -53,37 +63,40 @@ Public Class MembersLoginLogoutClass
         End Try
 
     End Function
-
     Public Function removeUser(ByVal nuser As Users) As Boolean
-        Dim tuser As Users = nuser
+        'Dim tuser As Users = nuser
 
-        Dim taken = ConnectionsList.TryTake(tuser)
+        'Dim taken = ConnectionsList.TryTake(tuser)
 
-        If taken Then
-            RaiseEvent MembersListChanged()
-            Return True
-        Else
-            _removelist.Add(tuser)
-            RaiseEvent MembersListChanged()
-            Return True
-        End If
+        'If taken Then
+        '    RaiseEvent MembersListChanged()
+        '    Return True
+        'Else
+        '    _removelist.Add(tuser)
+        '    RaiseEvent MembersListChanged()
+        '    Return True
+        'End If
+        ConnectionsList.Remove(nuser)
+        RaiseEvent MembersListChanged()
+        Return True
+
     End Function
 
     Public Function GetAllUsers() As List(Of Users)
         Dim retlist As New List(Of Users)
         For Each a In ConnectionsList
-            If _removelist.Count = 0 Then
-                retlist.Add(a)
-                Continue For
-            End If
+            'If _removelist.Count = 0 Then
+            '    retlist.Add(a)
+            '    Continue For
+            'End If
 
-            Dim g = From b In _removelist
-                    Where b.ConnectionId = a.ConnectionId And b.Name = a.Name
-                    Select b
+            'Dim g = From b In _removelist
+            '        Where b.ConnectionId = a.ConnectionId And b.Name = a.Name
+            '        Select b
 
-            If g.Count = 0 Then
-                retlist.Add(a)
-            End If
+            '  If g.Count = 0 Then
+            retlist.Add(a)
+            'End If
         Next
         Return retlist
     End Function
