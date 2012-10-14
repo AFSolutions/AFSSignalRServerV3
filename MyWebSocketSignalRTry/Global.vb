@@ -30,7 +30,6 @@ Public Class wsHub
             Dim nUser As New Users With {.ConnectionId = Conid, .Name = name}
 
             If ffg.AddUser(nUser) Then
-                'Caller.clientIsConnected(True)
                 Clients.clientUserLoggedIn(nUser)
             Else
                 Caller.clientIsConnected(False)
@@ -84,9 +83,11 @@ Public Class wsHub
             Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
             Dim user = (New Users With {.Name = name, .ConnectionId = connid})
             If ffg.removeUser(user) Then
-                'Caller.clientIsDisconnected(True)
-
-                Clients.clientUserLoggedOut(user)
+                For Each a In ffg.GetAllUsers
+                    If a.ConnectionId <> connid Then
+                        Clients(a.ConnectionId).clientUserLoggedOut(user)
+                    End If
+                Next
             Else
                 Caller.clientOnErrorOccured("not removed yet...")
             End If
@@ -110,7 +111,6 @@ Public Class wsHub
 
 
     Public Sub UserWritesMessage(ByVal conid As String)
-
         Clients(conid).clientPartnerWritesMessage(Context.ConnectionId)
     End Sub
 

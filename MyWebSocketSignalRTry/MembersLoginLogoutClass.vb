@@ -9,6 +9,8 @@ Public Class MembersLoginLogoutClass
 
 
     Private Shared _connectionsList As New Concurrent.ConcurrentBag(Of Users)
+    Private _removelist As New Concurrent.ConcurrentBag(Of Users)
+
 
     Public Shared Property ConnectionsList As Concurrent.ConcurrentBag(Of Users)
         Get
@@ -61,14 +63,22 @@ Public Class MembersLoginLogoutClass
             RaiseEvent MembersListChanged()
             Return True
         Else
-            Return False
+            _removelist.Add(tuser)
+            RaiseEvent MembersListChanged()
+            Return True
         End If
     End Function
 
     Public Function GetAllUsers() As List(Of Users)
         Dim retlist As New List(Of Users)
         For Each a In ConnectionsList
-            retlist.Add(a)
+            Dim g = From b In _removelist
+                    Where b.ConnectionId = a.ConnectionId And b.Name = a.Name
+                    Select b
+
+            If g.Count = 0 Then
+                retlist.Add(a)
+            End If
         Next
         Return retlist
     End Function
