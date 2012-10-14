@@ -80,12 +80,13 @@ Public Class wsHub
             Dim user = (New Users With {.Name = name, .ConnectionId = connid})
             ffg.removeUser(user)
 
-            For Each a In ffg.GetAllUsers
-                If a.ConnectionId <> connid Then
-                    Clients(a.ConnectionId).clientUserLoggedOut(user)
-                End If
-            Next
-            
+            'For Each a In ffg.GetAllUsers
+            '    If a.ConnectionId <> connid Then
+            '        Clients(a.ConnectionId).clientUserLoggedOut(user)
+            '    End If
+            'Next
+            Clients.clientUserLoggedOut(user)
+
             Clients.clientGetUsers(ffg.GetAllUsers)
         Catch ex As Exception
             Caller.clientOnErrorOccured(ex.Message.ToString)
