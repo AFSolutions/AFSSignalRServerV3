@@ -5,10 +5,6 @@ REM ready version v2.8
 <HubName("wsHub")>
 Public Class wsHub
     Inherits Hub
-    Implements IDisconnect
-    'Public Shared connectionsList As New Concurrent.ConcurrentBag(Of Users)
-
-
 
     Sub New()
         MyBase.New()
@@ -82,15 +78,14 @@ Public Class wsHub
 
             Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
             Dim user = (New Users With {.Name = name, .ConnectionId = connid})
-            If ffg.removeUser(user) Then
-                For Each a In ffg.GetAllUsers
-                    If a.ConnectionId <> connid Then
-                        Clients(a.ConnectionId).clientUserLoggedOut(user)
-                    End If
-                Next
-            Else
-                Caller.clientOnErrorOccured("not removed yet...")
-            End If
+            ffg.removeUser(user)
+
+            For Each a In ffg.GetAllUsers
+                If a.ConnectionId <> connid Then
+                    Clients(a.ConnectionId).clientUserLoggedOut(user)
+                End If
+            Next
+            
             Clients.clientGetUsers(ffg.GetAllUsers)
         Catch ex As Exception
             Caller.clientOnErrorOccured(ex.Message.ToString)
@@ -114,38 +109,7 @@ Public Class wsHub
         Clients(conid).clientPartnerWritesMessage(Context.ConnectionId)
     End Sub
 
-    Public Function Disconnect() As Threading.Tasks.Task Implements IDisconnect.Disconnect
-        Try
-            'Dim removelist As New List(Of Users)
-
-
-            'Dim a = From b In ConnectionsList
-            '         Where b.ConnectionId = Context.ConnectionId
-            '         Select b
-
-            'For Each aa In a
-            '    removelist.AddRange(From b In ConnectionsList
-            '                        Where b.Name = aa.Name
-            '                        Select b)
-            'Next
-
-
-
-
-            'For Each aaa In removelist
-            '    ConnectionsList.TryTake(aaa)
-            'Next
-
-
-            'Me.GetUsersHelper()
-
-            'Caller.clientIsDisconnected(True)
-
-
-        Catch ex As Exception
-            Caller.clientOnErrorOccured(ex.Message.ToString)
-        End Try
-    End Function
+  
 
 
     'Public Sub StreamData(ByVal toid As String, ByVal filename As String, ByVal arrb As Byte())
