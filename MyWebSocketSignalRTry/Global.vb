@@ -5,6 +5,7 @@ REM ready version v2.8
 <HubName("wsHub")>
 Public Class wsHub
     Inherits Hub
+    Implements IDisconnect
 
     Sub New()
         MyBase.New()
@@ -110,7 +111,7 @@ Public Class wsHub
         Clients(conid).clientPartnerWritesMessage(Context.ConnectionId)
     End Sub
 
-  
+
 
 
     'Public Sub StreamData(ByVal toid As String, ByVal filename As String, ByVal arrb As Byte())
@@ -186,6 +187,20 @@ Public Class wsHub
         Clients(reciever).MultiPartedFileSentReady(filename)
     End Sub
 #End Region
+
+    Public Function Disconnect() As Threading.Tasks.Task Implements IDisconnect.Disconnect
+        Dim fffg = MembersLoginLogoutClass.Instance
+        Dim x = From a In fffg.GetAllUsers
+                Where a.ConnectionId = Context.ConnectionId
+                Select a
+
+        If x.Count > 0 Then
+            Dim gg = fffg.RemoveUsersOut(Context.ConnectionId)
+            Return Clients.clientUserLoggedOut(x(0))
+        Else
+        End If
+
+    End Function
 
 End Class
 

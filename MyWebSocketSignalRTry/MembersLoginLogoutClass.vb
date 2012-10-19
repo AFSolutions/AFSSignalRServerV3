@@ -6,33 +6,20 @@ Public Class MembersLoginLogoutClass
 
 
     Public Shared Event MembersListChanged As MemebersListChangedEventHandler
+    Private Shared _connectionsList As Concurrent.ConcurrentDictionary(Of String, String)
 
-
-    'Private Shared _connectionsList As New Concurrent.ConcurrentBag(Of Users)
-    'Private _removelist As New Concurrent.ConcurrentBag(Of Users)
-
-    Private Shared _connectionsList As New List(Of Users)
-
-    'Public Shared Property ConnectionsList As Concurrent.ConcurrentBag(Of Users)
-    '    Get
-    '        Return _connectionsList
-    '    End Get
-    '    Set(value As Concurrent.ConcurrentBag(Of Users))
-    '        _connectionsList = value
-    '    End Set
-    'End Property
-
-    Public Shared Property ConnectionsList As List(Of Users)
+    Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, String)
         Get
             Return _connectionsList
         End Get
-        Set(value As List(Of Users))
+        Set(value As Concurrent.ConcurrentDictionary(Of String, String))
             _connectionsList = value
         End Set
     End Property
 
 
     Protected Sub New()
+
 
     End Sub
 
@@ -47,16 +34,14 @@ Public Class MembersLoginLogoutClass
 
     Public Function AddUser(ByVal nuser As Users) As Boolean
         Try
-            Dim a = (From b In ConnectionsList
-                    Where b.Name = nuser.Name And b.ConnectionId = nuser.ConnectionId
-                    Select b).FirstOrDefault
+            ConnectionsList.AddOrUpdate(nuser.ConnectionId, nuser.Name, Function(key, oldvalue)
+                                                                            If nuser.ConnectionId = key Then
+                                                                                Return oldvalue
+                                                                            Else
+                                                                                Return Nothing
+                                                                            End If
+                                                                        End Function)
 
-            If a Is Nothing Then
-                ConnectionsList.Add(nuser)
-                Return True
-            Else
-                Return True
-            End If
             RaiseEvent MembersListChanged()
         Catch
             Return False
@@ -64,40 +49,32 @@ Public Class MembersLoginLogoutClass
 
     End Function
     Public Function removeUser(ByVal nuser As Users) As Boolean
-        'Dim tuser As Users = nuser
-
-        'Dim taken = ConnectionsList.TryTake(tuser)
-
-        'If taken Then
-        '    RaiseEvent MembersListChanged()
-        '    Return True
-        'Else
-        '    _removelist.Add(tuser)
-        '    RaiseEvent MembersListChanged()
-        '    Return True
-        'End If
-        ConnectionsList.Remove(nuser)
-        RaiseEvent MembersListChanged()
-        Return True
+        If ConnectionsList.TryRemove(nuser.ConnectionId, nuser.Name) Then
+            RaiseEvent MembersListChanged()
+            Return True
+        Else
+            Return False
+        End If
 
     End Function
 
     Public Function GetAllUsers() As List(Of Users)
         Dim retlist As New List(Of Users)
         For Each a In ConnectionsList
-            'If _removelist.Count = 0 Then
-            '    retlist.Add(a)
-            '    Continue For
-            'End If
-
-            'Dim g = From b In _removelist
-            '        Where b.ConnectionId = a.ConnectionId And b.Name = a.Name
-            '        Select b
-
-            '  If g.Count = 0 Then
-            retlist.Add(a)
-            'End If
+            retlist.Add(New Users With {.ConnectionId = a.Key, .Name = a.Value})
         Next
         Return retlist
     End Function
+
+    Public Function RemoveUsersOut(ByVal conid As String) As Boolean
+
+        Dim Name As String = ""
+        If ConnectionsList.TryRemove(conid, Name) Then
+            RaiseEvent MembersListChanged()
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
 End Class
