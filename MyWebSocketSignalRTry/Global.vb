@@ -10,12 +10,13 @@ Public Class wsHub
     Sub New()
         MyBase.New()
         Dim fffg = MembersLoginLogoutClass.Instance
+        AddHandler fffg.ErrorOccured, AddressOf MemErrOcc
         AddHandler fffg.MembersListChanged, AddressOf MembersChangeing
     End Sub
 
     Private Sub MembersChangeing()
-        Dim fffg = MembersLoginLogoutClass.Instance
-        RemoveHandler fffg.MembersListChanged, AddressOf MembersChangeing
+        'Dim fffg = MembersLoginLogoutClass.Instance
+        'RemoveHandler fffg.MembersListChanged, AddressOf MembersChangeing
         Me.GetUsersHelper()
     End Sub
 
@@ -36,7 +37,8 @@ Public Class wsHub
             Clients.clientGetUsers(ffg.GetAllUsers)
         Catch ex As Exception
             Caller.clientIsConnected(False)
-            Debug.WriteLine(ex.Message.ToString & vbCrLf & ex.Source.ToString & vbCrLf & ex.StackTrace.ToString)
+            'Debug.WriteLine(ex.Message.ToString & vbCrLf & ex.Source.ToString & vbCrLf & ex.StackTrace.ToString)
+            Caller.clientOnErrorOccured(ex.Message.ToString)
         End Try
     End Sub
 
@@ -201,6 +203,10 @@ Public Class wsHub
         End If
 
     End Function
+
+    Private Sub MemErrOcc(errormess As String)
+        Caller.clientOnErrorOccured(errormess)
+    End Sub
 
 End Class
 

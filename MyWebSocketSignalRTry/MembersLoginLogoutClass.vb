@@ -5,7 +5,10 @@ Public Class MembersLoginLogoutClass
 
 
 
+
     Public Shared Event MembersListChanged As MemebersListChangedEventHandler
+    Public Shared Event ErrorOccured(ByVal errormess As String)
+
     Private Shared _connectionsList As Concurrent.ConcurrentDictionary(Of String, String)
 
     Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, String)
@@ -43,7 +46,8 @@ Public Class MembersLoginLogoutClass
                                                                         End Function)
 
             RaiseEvent MembersListChanged()
-        Catch
+        Catch ex As Exception
+            RaiseEvent ErrorOccured(ex.Message.ToString & vbCrLf & ex.Source.ToString)
             Return False
         End Try
 
