@@ -7,11 +7,24 @@ Public Class wsHub
     Inherits Hub
     Implements IDisconnect
 
+
+    Private Shared _connectionsList As New Concurrent.ConcurrentDictionary(Of String, Users)
+
+    Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, Users)
+        Get
+            Return _connectionsList
+        End Get
+        Set(value As Concurrent.ConcurrentDictionary(Of String, Users))
+            _connectionsList = value
+        End Set
+    End Property
+
+
     Sub New()
         MyBase.New()
-        Dim fffg = MembersLoginLogoutClass.Instance
-        AddHandler fffg.ErrorOccured, AddressOf MemErrOcc
-        AddHandler fffg.MembersListChanged, AddressOf MembersChangeing
+        'Dim fffg = MembersLoginLogoutClass.Instance
+        'AddHandler fffg.ErrorOccured, AddressOf MemErrOcc
+        'AddHandler fffg.MembersListChanged, AddressOf MembersChangeing
     End Sub
 
     Private Sub MembersChangeing()
@@ -22,39 +35,45 @@ Public Class wsHub
 
 
     Public Sub Login(ByVal Conid As String, ByVal name As String)
-        Try
-            Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
+        'Try
+        '    Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
 
-            Dim nUser As New Users With {.ConnectionId = Conid, .Name = name}
+        '    Dim nUser As New Users With {.ConnectionId = Conid, .Name = name}
 
-            If ffg.AddUser(nUser) Then
-                Clients.clientUserLoggedIn(nUser)
-                Clients.clientGetUsers(ffg.GetAllUsers)
-            Else
-                Caller.clientIsConnected(False)
-            End If
-        Catch ex As Exception
-            Caller.clientOnErrorOccured(ex.Message.ToString)
-            Caller.clientIsConnected(False)
-            'Debug.WriteLine(ex.Message.ToString & vbCrLf & ex.Source.ToString & vbCrLf & ex.StackTrace.ToString)
-        End Try
+        '    If ffg.AddUser(nUser) Then
+        '        Clients.clientUserLoggedIn(nUser)
+        '        Clients.clientGetUsers(ffg.GetAllUsers)
+        '    Else
+        '        Caller.clientIsConnected(False)
+        '    End If
+        'Catch ex As Exception
+        '    Caller.clientOnErrorOccured(ex.Message.ToString)
+        '    Caller.clientIsConnected(False)
+        '    'Debug.WriteLine(ex.Message.ToString & vbCrLf & ex.Source.ToString & vbCrLf & ex.StackTrace.ToString)
+        'End Try
+
+        Dim NewUser As New Users With {.ConnectionId = Conid, .Name = name}
+
+        Dim nwUser = ConnectionsList.AddOrUpdate(Conid, NewUser, Function(key, oldvalue)
+                                                                     If key = oldvalue.ConnectionId Then
+                                                                         Return oldvalue
+                                                                     Else
+                                                                         Return NewUser
+                                                                     End If
+                                                                 End Function)
+
+        Clients.clientUserLoggedIn(NewUser)
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
-        Dim ffg = MembersLoginLogoutClass.Instance
-        Debug.WriteLine("alluserslist: " & ffg.GetAllUsers.Count)
+        'Dim ffg = MembersLoginLogoutClass.Instance
+        'Debug.WriteLine("alluserslist: " & ffg.GetAllUsers.Count)
         Dim nlist As New List(Of Users)
-        For Each a In ffg.GetAllUsers
-            If ee Is Nothing Then
-                nlist.Add(a)
-            ElseIf ee IsNot Nothing Then
-                If ee.ConnectionId = a.ConnectionId And ee.Name = a.Name Then
-                    Continue For
-                End If
-            End If
+        For Each a In ConnectionsList
+            nlist.Add(CType(a.Value, Users))
         Next
 
-        Clients.clientGetUsers(nlist) 'sJSON)
+        Clients.clientGetUsers(nlist)
     End Sub
 
     Public Sub GetUsers()
@@ -75,23 +94,30 @@ Public Class wsHub
     End Sub
 
     Public Sub LogOut(ByVal name As String, ByVal connid As String)
-        Try
+        'Try
 
-            Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
-            Dim user = (New Users With {.Name = name, .ConnectionId = connid})
-            ffg.removeUser(user)
+        '    Dim ffg As MembersLoginLogoutClass = MembersLoginLogoutClass.Instance
+        '    Dim user = (New Users With {.Name = name, .ConnectionId = connid})
+        '    ffg.removeUser(user)
 
-            'For Each a In ffg.GetAllUsers
-            '    If a.ConnectionId <> connid Then
-            '        Clients(a.ConnectionId).clientUserLoggedOut(user)
-            '    End If
-            'Next
-            Clients.clientUserLoggedOut(user)
+        '    'For Each a In ffg.GetAllUsers
+        '    '    If a.ConnectionId <> connid Then
+        '    '        Clients(a.ConnectionId).clientUserLoggedOut(user)
+        '    '    End If
+        '    'Next
+        '    Clients.clientUserLoggedOut(user)
 
-            Clients.clientGetUsers(ffg.GetAllUsers)
-        Catch ex As Exception
-            Caller.clientOnErrorOccured(ex.Message.ToString)
-        End Try
+        '    Clients.clientGetUsers(ffg.GetAllUsers)
+        'Catch ex As Exception
+        '    Caller.clientOnErrorOccured(ex.Message.ToString)
+        'End Try
+
+        Dim olduser As New Users
+        If ConnectionsList.TryRemove(connid, olduser) Then
+            Clients.clientUserLoggedOut(New Users With {.ConnectionId = connid, .Name = name})
+        Else
+            Caller.clientOnErrorOccured("not logged out error!")
+        End If
     End Sub
 
 
@@ -189,16 +215,16 @@ Public Class wsHub
 #End Region
 
     Public Function Disconnect() As Threading.Tasks.Task Implements IDisconnect.Disconnect
-        Dim fffg = MembersLoginLogoutClass.Instance
-        Dim x = From a In fffg.GetAllUsers
-                Where a.ConnectionId = Context.ConnectionId
-                Select a
+        'Dim fffg = MembersLoginLogoutClass.Instance
+        'Dim x = From a In fffg.GetAllUsers
+        '        Where a.ConnectionId = Context.ConnectionId
+        '        Select a
 
-        If x.Count > 0 Then
-            Dim gg = fffg.RemoveUsersOut(Context.ConnectionId)
-            Return Clients.clientUserLoggedOut(x(0))
-        Else
-        End If
+        'If x.Count > 0 Then
+        '    Dim gg = fffg.RemoveUsersOut(Context.ConnectionId)
+        '    Return Clients.clientUserLoggedOut(x(0))
+        'Else
+        'End If
 
     End Function
 
