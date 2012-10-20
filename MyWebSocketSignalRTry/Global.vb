@@ -71,7 +71,7 @@ Public Class wsHub
 
         _clients.Add(NewUser)
         Clients.clientUserLoggedIn(NewUser)
-        Me.GetUsersHelper()
+        'Me.GetUsersHelper()
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
