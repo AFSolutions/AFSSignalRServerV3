@@ -49,21 +49,20 @@ Public Class wsHub
 
         Dim NewUser As New Users With {.ConnectionId = Conid, .Name = name}
 
-        Dim nwUser = ConnectionsList.AddOrUpdate(Conid, NewUser, Function(key, oldvalue)
-                                                                     If key = oldvalue.ConnectionId Then
-                                                                         Return oldvalue
-                                                                     Else
-                                                                         Return NewUser
-                                                                     End If
-                                                                 End Function)
-        If ConnectionsList.Contains(New KeyValuePair(Of String, Users)(Conid, NewUser)) Then
+        'Dim nwUser = ConnectionsList.AddOrUpdate(Conid, NewUser, Function(key, oldvalue)
+        '                                                             If key = oldvalue.ConnectionId Then
+        '                                                                 Return oldvalue
+        '                                                             Else
+        '                                                                 Return NewUser
+        '                                                             End If
+        '                                                         End Function)
+        Dim bb = ConnectionsList.TryAdd(Conid, NewUser)
+        If bb Then
             Clients.clientUserLoggedIn(NewUser)
             Me.GetUsersHelper()
         Else
             Caller.clientOnErrorOccured("not added to list...")
         End If
-
-
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
