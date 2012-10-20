@@ -45,16 +45,17 @@ Public Class MembersLoginLogoutClass
             '                                                                End If
             '                                                            End Function)
 
-            ConnectionsList.AddOrUpdate(nuser.ConnectionId, nuser, Function(key, oldvalue)
-                                                                       If key = nuser.ConnectionId Then
-                                                                           Return oldvalue
-                                                                       Else
-                                                                           Return nuser
-                                                                       End If
-                                                                   End Function)
+            Dim nwUser = ConnectionsList.AddOrUpdate(nuser.ConnectionId, nuser, Function(key, oldvalue)
+                                                                                    If key = oldvalue.ConnectionId Then
+                                                                                        Return oldvalue
+                                                                                    Else
+                                                                                        Return nuser
+                                                                                    End If
+                                                                                End Function)
 
 
             RaiseEvent MembersListChanged()
+            Return True
         Catch ex As Exception
             RaiseEvent ErrorOccured(ex.Message.ToString & vbCrLf & ex.Source.ToString)
             Return False
