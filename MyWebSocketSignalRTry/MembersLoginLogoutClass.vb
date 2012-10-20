@@ -9,7 +9,7 @@ Public Class MembersLoginLogoutClass
     Public Shared Event MembersListChanged As MemebersListChangedEventHandler
     Public Shared Event ErrorOccured(ByVal errormess As String)
 
-    Private Shared _connectionsList As Concurrent.ConcurrentDictionary(Of String, String)
+    Private Shared _connectionsList As New Concurrent.ConcurrentDictionary(Of String, String)
 
     Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, String)
         Get
