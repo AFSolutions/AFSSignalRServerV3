@@ -53,8 +53,6 @@ Public Class MembersLoginLogoutClass
                                                                                     End If
                                                                                 End Function)
 
-
-            RaiseEvent MembersListChanged()
             Return True
         Catch ex As Exception
             RaiseEvent ErrorOccured(ex.Message.ToString & vbCrLf & ex.Source.ToString)

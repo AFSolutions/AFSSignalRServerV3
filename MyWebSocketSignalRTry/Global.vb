@@ -29,16 +29,14 @@ Public Class wsHub
 
             If ffg.AddUser(nUser) Then
                 Clients.clientUserLoggedIn(nUser)
+                Clients.clientGetUsers(ffg.GetAllUsers)
             Else
                 Caller.clientIsConnected(False)
             End If
-
-
-            Clients.clientGetUsers(ffg.GetAllUsers)
         Catch ex As Exception
+            Caller.clientOnErrorOccured(ex.Message.ToString)
             Caller.clientIsConnected(False)
             'Debug.WriteLine(ex.Message.ToString & vbCrLf & ex.Source.ToString & vbCrLf & ex.StackTrace.ToString)
-            Caller.clientOnErrorOccured(ex.Message.ToString)
         End Try
     End Sub
 
