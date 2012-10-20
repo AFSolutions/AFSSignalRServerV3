@@ -119,6 +119,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Global.vb" />
+    <Compile Include="InMemRepro.vb" />
     <Compile Include="MembersLoginLogoutClass.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

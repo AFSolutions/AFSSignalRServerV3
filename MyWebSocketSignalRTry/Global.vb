@@ -8,18 +8,23 @@ Public Class wsHub
     Implements IDisconnect
 
 
-    Private Shared _connectionsList As New Concurrent.ConcurrentDictionary(Of String, Users)
+    Dim _clients As InMemoryRepository
 
-    Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, Users)
-        Get
-            Return _connectionsList
-        End Get
-        Set(value As Concurrent.ConcurrentDictionary(Of String, Users))
-            _connectionsList = value
-        End Set
-    End Property
+    'Private Shared _connectionsList As New Concurrent.ConcurrentDictionary(Of String, Users)
+
+    'Public Shared Property ConnectionsList As Concurrent.ConcurrentDictionary(Of String, Users)
+    '    Get
+    '        Return _connectionsList
+    '    End Get
+    '    Set(value As Concurrent.ConcurrentDictionary(Of String, Users))
+    '        _connectionsList = value
+    '    End Set
+    'End Property
 
 
+    Sub New()
+        _clients = InMemoryRepository.GetInstance
+    End Sub
   
 
     Private Sub MembersChangeing()
@@ -56,21 +61,25 @@ Public Class wsHub
         '                                                                 Return NewUser
         '                                                             End If
         '                                                         End Function)
-        Dim bb = ConnectionsList.TryAdd(Conid, NewUser)
-        If bb Then
-            Clients.clientUserLoggedIn(NewUser)
-            Me.GetUsersHelper()
-        Else
-            Caller.clientOnErrorOccured("not added to list...")
-        End If
+        'Dim bb = ConnectionsList.TryAdd(Conid, NewUser)
+        'If bb Then
+        '    Clients.clientUserLoggedIn(NewUser)
+        '    Me.GetUsersHelper()
+        'Else
+        '    Caller.clientOnErrorOccured("not added to list...")
+        'End If
+
+        _clients.Add(NewUser)
+        Clients.clientUserLoggedIn(NewUser)
+        Me.GetUsersHelper()
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
         'Dim ffg = MembersLoginLogoutClass.Instance
         'Debug.WriteLine("alluserslist: " & ffg.GetAllUsers.Count)
         Dim nlist As New List(Of Users)
-        For Each a In ConnectionsList
-            nlist.Add(CType(a.Value, Users))
+        For Each a In _clients.Users
+            nlist.Add(a)
         Next
 
         Clients.clientGetUsers(nlist)
@@ -112,12 +121,10 @@ Public Class wsHub
         '    Caller.clientOnErrorOccured(ex.Message.ToString)
         'End Try
 
-        Dim olduser As New Users
-        If ConnectionsList.TryRemove(connid, olduser) Then
-            Clients.clientUserLoggedOut(New Users With {.ConnectionId = connid, .Name = name})
-        Else
-            Caller.clientOnErrorOccured("not logged out error!")
-        End If
+
+        Dim user = New Users With {.ConnectionId = connid, .Name = name}
+        _clients.Remove(user)
+        Clients.clientUserLoggedOut(user)
         Me.GetUsersHelper()
     End Sub
 
@@ -128,9 +135,9 @@ Public Class wsHub
 
     Public Sub SendMessage(ByVal ToId As String, ByVal mesage As String)
 
-        Clients(ToId).clientGotSeperateMessage((From a In ConnectionsList
-                                               Where a.Key = Context.ConnectionId
-                                               Select CType(a.Value, Users)).FirstOrDefault, mesage)
+        Clients(ToId).clientGotSeperateMessage((From a In _clients.Users
+                                               Where a.ConnectionId = Context.ConnectionId
+                                               Select a).FirstOrDefault, mesage)
     End Sub
 
 
@@ -226,9 +233,14 @@ Public Class wsHub
         '    Return Clients.clientUserLoggedOut(x(0))
         'Else
         'End If
-        Dim removedUser As New Users
-        ConnectionsList.TryRemove(Context.ConnectionId, removedUser)
-        Return Clients.clientUserLoggedOut(removedUser)
+        Dim removedUser = (From b In _clients.Users
+                          Where b.ConnectionId = Context.ConnectionId
+                          Select b).FirstOrDefault
+
+        If removedUser IsNot Nothing Then
+            _clients.Remove(removedUser)
+            Return Clients.clientUserLoggedOut(removedUser)
+        End If
     End Function
 
     Private Sub MemErrOcc(errormess As String)
