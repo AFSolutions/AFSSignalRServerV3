@@ -8,7 +8,7 @@ Public Class wsHub
     Implements IDisconnect
 
 
-    Dim _clients As InMemoryRepository
+    Shared _clients As InMemoryRepository
 
     'Private Shared _connectionsList As New Concurrent.ConcurrentDictionary(Of String, Users)
 
