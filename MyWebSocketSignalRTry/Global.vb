@@ -56,9 +56,14 @@ Public Class wsHub
                                                                          Return NewUser
                                                                      End If
                                                                  End Function)
+        If ConnectionsList.Contains(New KeyValuePair(Of String, Users)(Conid, NewUser)) Then
+            Clients.clientUserLoggedIn(NewUser)
+            Me.GetUsersHelper()
+        Else
+            Caller.clientOnErrorOccured("not added to list...")
+        End If
 
-        Clients.clientUserLoggedIn(NewUser)
-        Me.GetUsersHelper()
+
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
