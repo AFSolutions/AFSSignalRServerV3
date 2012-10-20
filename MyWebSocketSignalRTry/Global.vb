@@ -20,12 +20,7 @@ Public Class wsHub
     End Property
 
 
-    Sub New()
-        MyBase.New()
-        'Dim fffg = MembersLoginLogoutClass.Instance
-        'AddHandler fffg.ErrorOccured, AddressOf MemErrOcc
-        'AddHandler fffg.MembersListChanged, AddressOf MembersChangeing
-    End Sub
+  
 
     Private Sub MembersChangeing()
         'Dim fffg = MembersLoginLogoutClass.Instance
@@ -63,6 +58,7 @@ Public Class wsHub
                                                                  End Function)
 
         Clients.clientUserLoggedIn(NewUser)
+        Me.GetUsersHelper()
     End Sub
 
     Private Sub GetUsersHelper(Optional ByVal ee As Users = Nothing)
@@ -118,6 +114,7 @@ Public Class wsHub
         Else
             Caller.clientOnErrorOccured("not logged out error!")
         End If
+        Me.GetUsersHelper()
     End Sub
 
 
@@ -126,10 +123,10 @@ Public Class wsHub
     End Sub
 
     Public Sub SendMessage(ByVal ToId As String, ByVal mesage As String)
-        Dim ffg = MembersLoginLogoutClass.Instance
-        Clients(ToId).clientGotSeperateMessage((From a In ffg.GetAllUsers
-                                               Where a.ConnectionId = Context.ConnectionId
-                                               Select a).FirstOrDefault, mesage)
+
+        Clients(ToId).clientGotSeperateMessage((From a In ConnectionsList
+                                               Where a.Key = Context.ConnectionId
+                                               Select CType(a.Value, Users)).FirstOrDefault, mesage)
     End Sub
 
 
@@ -225,7 +222,9 @@ Public Class wsHub
         '    Return Clients.clientUserLoggedOut(x(0))
         'Else
         'End If
-
+        Dim removedUser As New Users
+        ConnectionsList.TryRemove(Context.ConnectionId, removedUser)
+        Return Clients.clientUserLoggedOut(removedUser)
     End Function
 
     Private Sub MemErrOcc(errormess As String)
